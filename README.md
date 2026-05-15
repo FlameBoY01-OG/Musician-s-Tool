@@ -56,13 +56,34 @@ All commands should be run from the root directory of the project with the `musi
 
 ### Start the Web Application First (Recommended)
 
-Launch the Flask server to interact with the model via the UI. If you start this before training, you can watch the progress live on the Dashboard.
+Launch the Flask server to interact with the model via the UI. The Flask server automatically serves the compiled React frontend. If you start this before training, you can watch the progress live on the Dashboard.
 
 ```bash
 # Set PYTHONPATH to ensure modules are found correctly
 PYTHONPATH=. python web/server.py
 ```
 *Open your browser and navigate to **http://127.0.0.1:5000***
+
+### 💻 UI Development
+
+If you wish to modify the React frontend, you will need Node.js installed.
+
+1.  Navigate to the frontend directory:
+    ```bash
+    cd web/frontend
+    ```
+2.  Install JavaScript dependencies (only needed once):
+    ```bash
+    npm install
+    ```
+3.  Start the Vite development server (supports Hot Module Replacement):
+    ```bash
+    npm run dev
+    ```
+4.  To build the production assets for Flask to serve:
+    ```bash
+    npm run build
+    ```
 
 ### Option A: The Unified Pipeline (Recommended)
 
