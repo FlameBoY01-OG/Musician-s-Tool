@@ -2,11 +2,15 @@ import argparse
 import os
 import json
 import numpy as np
+import torch
 import musdb
 from tqdm import tqdm
 from src.utils import compute_stft
 
 def preprocess(args):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Preprocessing using device: {device}")
+    
     os.makedirs('logs', exist_ok=True)
     status_file = 'logs/preprocess_status.json'
     
@@ -42,7 +46,7 @@ def preprocess(args):
         if args.mono:
             mix_audio = np.mean(mix_audio, axis=0, keepdims=True)
             
-        mix_stft = compute_stft(mix_audio, n_fft=n_fft, hop_length=hop_length)
+        mix_stft = compute_stft(mix_audio, n_fft=n_fft, hop_length=hop_length, device=device)
         mix_mag = np.abs(mix_stft)
         
         # log1p normalization
@@ -55,7 +59,7 @@ def preprocess(args):
             tgt_audio = track.targets[target].audio.T
             if args.mono:
                 tgt_audio = np.mean(tgt_audio, axis=0, keepdims=True)
-            tgt_stft = compute_stft(tgt_audio, n_fft=n_fft, hop_length=hop_length)
+            tgt_stft = compute_stft(tgt_audio, n_fft=n_fft, hop_length=hop_length, device=device)
             tgt_mag = np.abs(tgt_stft)
             
             # compute soft mask

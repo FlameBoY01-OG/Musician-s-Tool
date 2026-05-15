@@ -5,14 +5,23 @@ import matplotlib.pyplot as plt
 import io
 import soundfile as sf
 
-def compute_stft(audio, n_fft=4096, hop_length=1024):
+def compute_stft(audio, n_fft=4096, hop_length=1024, device=None):
     """
-    Computes STFT using librosa.
+    Computes STFT using librosa (CPU) or PyTorch (GPU).
     audio shape: (channels, samples)
     Returns: complex STFT of shape (channels, freq_bins, frames)
     """
     if audio.ndim == 1:
         audio = np.expand_dims(audio, 0)
+        
+    if device is not None and device.type == 'cuda':
+        # Use PyTorch for GPU acceleration
+        audio_tensor = torch.from_numpy(audio).float().to(device)
+        window = torch.hann_window(n_fft).to(device)
+        stft_tensor = torch.stft(audio_tensor, n_fft=n_fft, hop_length=hop_length, window=window, return_complex=True, center=True)
+        return stft_tensor.cpu().numpy()
+
+    # Fallback to CPU using librosa
     stfts = [librosa.stft(audio[c], n_fft=n_fft, hop_length=hop_length, window='hann') for c in range(audio.shape[0])]
     return np.stack(stfts, axis=0)
 
