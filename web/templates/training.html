@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Dashboard - Musician's Tool</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1><a href="/">Musician's Tool</a></h1>
+        <nav>
+            <a href="/">Separate</a>
+            <a href="/training" class="active">Dashboard</a>
+            <a href="/about">About</a>
+        </nav>
+    </header>
+    
+    <main>
+        <h2 class="text-center">System Dashboard</h2>
+        <p class="text-center text-muted">Monitor preprocessing, training, and evaluation metrics.</p>
+        
+        <div class="dashboard-grid">
+            <div class="glass-card">
+                <h3>1. Data Preprocessing (Train Set)</h3>
+                <p id="prepStatusText" class="text-muted">Loading status...</p>
+                <div class="progress-bar-container">
+                    <div id="prepProgressBar" class="progress-bar" style="width: 0%"></div>
+                </div>
+                <p style="font-size: 0.8rem; margin-top: 1rem; color: var(--text-muted);">Processes the 100 MUSDB18 'train' tracks.</p>
+            </div>
+            
+            <div class="glass-card">
+                <h3>2. Model Training (90/10 Split)</h3>
+                <p id="trainStatusText" class="text-muted">Waiting for data...</p>
+                <div style="width: 100%; height: 250px;">
+                    <canvas id="lossChart"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-card" style="grid-column: 1 / -1;">
+                <h3>3. Final Evaluation Metrics (Test Set)</h3>
+                <p id="evalStatusText" class="text-muted">Model has not been evaluated yet. Run `python -m src.evaluate` after training.</p>
+                <div id="evalMetrics" class="hidden" style="margin-top: 1rem;">
+                    <div class="metric-badge">
+                        <h4>Average SDR</h4>
+                        <span id="metricSDR">0.0</span>
+                    </div>
+                    <div class="metric-badge">
+                        <h4>Average SIR</h4>
+                        <span id="metricSIR">0.0</span>
+                    </div>
+                    <div class="metric-badge">
+                        <h4>Average SAR</h4>
+                        <span id="metricSAR">0.0</span>
+                    </div>
+                </div>
+                <p style="font-size: 0.8rem; margin-top: 1rem; color: var(--text-muted);">Evaluated on the 50 isolated MUSDB18 'test' tracks.</p>
+            </div>
+        </div>
+    </main>
+    
+    <script src="/static/js/training.js"></script>
+</body>
+</html>

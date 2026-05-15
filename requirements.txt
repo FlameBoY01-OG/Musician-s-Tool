@@ -1,0 +1,13 @@
+torch>=2.3
+torchaudio>=2.3
+numpy>=1.26
+scipy>=1.13
+librosa>=0.10
+soundfile>=0.12
+musdb>=0.4
+stempeg>=0.2
+mir_eval>=0.7
+flask>=3.0
+flask-cors>=4.0
+tqdm>=4.66
+matplotlib>=3.9pytest>=8.0.0

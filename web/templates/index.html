@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musician's Tool - Music Source Separation</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <h1><a href="/">Musician's Tool</a></h1>
+        <nav>
+            <a href="/" class="active">Separate</a>
+            <a href="/training">Dashboard</a>
+            <a href="/about">About</a>
+        </nav>
+    </header>
+    
+    <main>
+        <div class="glass-card text-center">
+            <h2>AI-Powered Vocal Remover</h2>
+            <p class="text-muted">Upload any audio file to separate vocals and accompaniment.</p>
+            
+            <div id="notReadyMessage" class="hidden" style="padding: 3rem; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px dashed var(--glass-border); margin: 2rem 0;">
+                <h3 style="color: var(--accent-color);">Model Initialization Required</h3>
+                <p>The AI model is currently undergoing training and evaluation. Audio separation will be unlocked once this process is complete.</p>
+                <a href="/training" class="btn-primary" style="display: inline-block; margin-top: 1rem;">View Live Dashboard</a>
+            </div>
+
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput" accept="audio/*">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-color); margin-bottom: 1rem;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <h3>Drag & Drop Audio File</h3>
+                <p>or click to browse</p>
+            </div>
+            
+            <div id="progressSection" class="hidden">
+                <p id="statusText">Uploading...</p>
+                <div class="progress-bar-container">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+                <div id="processingLoader" class="loader hidden" style="margin-top: 1rem;"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/uploader.js"></script>
+</body>
+</html>

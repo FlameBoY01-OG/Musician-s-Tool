@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Separation Results - Musician's Tool</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/visualizer.css">
+</head>
+<body>
+    <header>
+        <h1><a href="/">Musician's Tool</a></h1>
+        <nav>
+            <a href="/" class="active">Separate</a>
+            <a href="/training">Dashboard</a>
+            <a href="/about">About</a>
+        </nav>
+    </header>
+    
+    <main>
+        <div class="glass-card">
+            <h2 class="text-center">Separation Results</h2>
+            <div id="playerContainer" class="player-container hidden">
+                <div class="stem-track">
+                    <div class="stem-header">
+                        <h3>Vocals</h3>
+                        <div class="stem-controls">
+                            <button class="btn-mute" data-target="vocals">Mute</button>
+                            <button class="btn-solo" data-target="vocals">Solo</button>
+                            <input type="range" class="vol-slider" data-target="vocals" min="0" max="1" step="0.01" value="1">
+                        </div>
+                    </div>
+                    <canvas id="canvasVocals" class="waveform"></canvas>
+                </div>
+                
+                <div class="stem-track">
+                    <div class="stem-header">
+                        <h3>Accompaniment</h3>
+                        <div class="stem-controls">
+                            <button class="btn-mute" data-target="accompaniment">Mute</button>
+                            <button class="btn-solo" data-target="accompaniment">Solo</button>
+                            <input type="range" class="vol-slider" data-target="accompaniment" min="0" max="1" step="0.01" value="1">
+                        </div>
+                    </div>
+                    <canvas id="canvasAccompaniment" class="waveform"></canvas>
+                </div>
+
+                <div class="global-controls text-center" style="margin-top: 2rem;">
+                    <button id="btnPlayPause" class="btn-primary" style="padding: 1rem 2rem; font-size: 1.2rem;">Play</button>
+                </div>
+            </div>
+            
+            <div id="loadingResults" class="text-center">
+                <p>Loading stems...</p>
+                <div class="loader"></div>
+            </div>
+        </div>
+    </main>
+    
+    <script>const JOB_ID = "{{ job_id }}";</script>
+    <script src="/static/js/visualizer.js"></script>
+    <script src="/static/js/player.js"></script>
+</body>
+</html>
