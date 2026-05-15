@@ -164,6 +164,8 @@ data/processed/
 checkpoints/
 logs/
 web/results/
+web/dist/
+web/frontend/node_modules/
 musdb18/
 PLAN.md
 DEVELOPMENT_SUMMARY.md

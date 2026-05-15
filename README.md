@@ -7,7 +7,7 @@ Musician's Tool is a deep-learning powered application that separates mixed audi
 *   **State-of-the-Art Source Separation**: Utilizes a 6-level U-Net model operating on magnitude spectrograms to accurately isolate vocals from complex audio mixtures.
 *   **Unified Pipeline script**: Process, train, and evaluate the full dataset sequentially with a single command via `run_pipeline.py`.
 *   **Complete ML Pipeline**: End-to-end Python scripts for data preprocessing, training, separation, and objective evaluation (SDR, SIR, SAR) using `mir_eval`.
-*   **Modern Web Interface**: A beautifully designed, vanilla HTML/CSS/JS frontend featuring:
+*   **Modern Web Interface**: A beautifully designed, **React** frontend (built with Vite) featuring:
     *   Drag-and-drop audio uploads (securely locked until the model is fully trained).
     *   Interactive multi-stem audio player with solo, mute, and volume controls.
     *   Live waveform visualizations rendered on HTML5 Canvas.

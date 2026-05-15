@@ -10,7 +10,10 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.separate import separate
 
-app = Flask(__name__)
+# Configure Flask to serve the Vite React build
+dist_folder = os.path.join(os.path.dirname(__file__), 'dist')
+app = Flask(__name__, static_folder=os.path.join(dist_folder, 'assets'), template_folder=dist_folder)
+
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'uploads')
 app.config['RESULTS_FOLDER'] = os.path.join(app.root_path, 'results')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -33,22 +36,6 @@ def process_audio(job_id, filepath):
     except Exception as e:
         jobs[job_id]['status'] = 'failed'
         jobs[job_id]['error'] = str(e)
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/separate/<job_id>')
-def separate_page(job_id):
-    return render_template('separate.html', job_id=job_id)
-
-@app.route('/training')
-def training_page():
-    return render_template('training.html')
-
-@app.route('/about')
-def about_page():
-    return render_template('about.html')
 
 @app.route('/api/is-ready')
 def is_ready():
@@ -124,6 +111,15 @@ def system_status():
 @app.route('/api/audio/<job_id>/<filename>')
 def serve_audio(job_id, filename):
     return send_from_directory(os.path.join(app.config['RESULTS_FOLDER'], job_id), filename)
+
+# Catch-all route to serve the React application
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react(path):
+    if path != "" and os.path.exists(os.path.join(app.template_folder, path)):
+        return send_from_directory(app.template_folder, path)
+    else:
+        return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
