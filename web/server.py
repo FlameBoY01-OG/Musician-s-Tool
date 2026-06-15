@@ -77,6 +77,14 @@ def get_status(job_id):
 
 @app.route('/api/results/<job_id>')
 def get_results(job_id):
+    # If the server restarted, we can still serve completed jobs if files exist on disk
+    out_dir = os.path.join(app.config['RESULTS_FOLDER'], job_id)
+    if os.path.exists(os.path.join(out_dir, 'vocals.wav')) and os.path.exists(os.path.join(out_dir, 'accompaniment.wav')):
+        return jsonify({
+            'vocals': f'/api/audio/{job_id}/vocals.wav',
+            'accompaniment': f'/api/audio/{job_id}/accompaniment.wav'
+        })
+        
     if job_id not in jobs:
         return jsonify({'error': 'Job not found'}), 404
     if jobs[job_id]['status'] != 'completed':

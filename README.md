@@ -1,20 +1,19 @@
-# 🎵 Musician's Tool — Music Source Separation
+# Musician's Tool — Music Source Separation
 
 Musician's Tool is a deep-learning powered application that separates mixed audio tracks into individual stems (e.g., vocals and accompaniment). Built with PyTorch and Flask, it features a U-Net architecture trained on the MUSDB18 dataset and a modern, glassmorphic web interface for easy use.
 
-## ✨ Features
+## Features
 
 *   **State-of-the-Art Source Separation**: Utilizes a 6-level U-Net model operating on magnitude spectrograms to accurately isolate vocals from complex audio mixtures.
-*   **Unified Pipeline script**: Process, train, and evaluate the full dataset sequentially with a single command via `run_pipeline.py`.
+*   **Unified Pipeline script**: Train and evaluate the model sequentially with a single command via `run_pipeline.py` (preprocessing is a separate manual step).
 *   **Complete ML Pipeline**: End-to-end Python scripts for data preprocessing, training, separation, and objective evaluation (SDR, SIR, SAR) using `mir_eval`.
 *   **Modern Web Interface**: A beautifully designed, **React** frontend (built with Vite) featuring:
     *   Drag-and-drop audio uploads (securely locked until the model is fully trained).
-    *   Interactive multi-stem audio player with solo, mute, and volume controls.
+    *   Interactive multi-stem audio player with independent controls to play/pause vocals and accompaniment individually.
     *   Live waveform visualizations rendered on HTML5 Canvas.
-    *   Real-time **System Dashboard** to dynamically monitor the preprocessing status, the training loss curves, and final evaluation metrics.
 *   **RESTful API**: Flask backend providing endpoints for asynchronous audio processing and system status polling.
 
-## 🧠 How It Works (The Principle)
+## How It Works (The Principle)
 
 The process of music source separation in this tool relies on transforming audio into visual representations and applying deep learning to "mask out" unwanted sounds. Here is a step-by-step breakdown of the underlying principle:
 
@@ -25,7 +24,7 @@ The process of music source separation in this tool relies on transforming audio
 3.  **Soft Masking:** Instead of outputting audio directly, the U-Net predicts a "Soft Mask"—a 2D matrix of values between 0.0 and 1.0. A value near 1.0 means "keep this sound" (e.g., vocals), and near 0.0 means "remove this sound" (e.g., drums).
 4.  **Application and Reconstruction:** We multiply this soft mask element-wise against the original mixture's spectrogram. Finally, we apply the **Inverse-STFT (ISTFT)** to convert this masked, frequency-domain data back into a standard, listenable audio waveform.
 
-## 🛠️ Installation
+## Installation
 
 ### Prerequisites
 
@@ -50,13 +49,13 @@ pip install -r requirements.txt
 ### Dataset
 The project expects the **MUSDB18** dataset to be located in the `musdb18/` directory at the project root, structured with `train/` and `test/` subdirectories.
 
-## 🚀 Usage
+## Usage
 
 All commands should be run from the root directory of the project with the `musicians-tool` environment activated.
 
-### Start the Web Application First (Recommended)
+### Start the Web Application
 
-Launch the Flask server to interact with the model via the UI. The Flask server automatically serves the compiled React frontend. If you start this before training, you can watch the progress live on the Dashboard.
+Launch the Flask server to interact with the model via the UI. The Flask server automatically serves the compiled React frontend.
 
 ```bash
 # Set PYTHONPATH to ensure modules are found correctly
@@ -64,7 +63,7 @@ PYTHONPATH=. python web/server.py
 ```
 *Open your browser and navigate to **http://127.0.0.1:5000***
 
-### 💻 UI Development
+### UI Development
 
 If you wish to modify the React frontend, you will need Node.js installed.
 
@@ -87,11 +86,12 @@ If you wish to modify the React frontend, you will need Node.js installed.
 
 ### Option A: The Unified Pipeline (Recommended)
 
-You can run preprocessing, training, and evaluation all in one go using the master script. 
+You can run training and evaluation in one go using the master script. 
+*(Note: Preprocessing must be run manually first, see Option B).* 
 
 ```bash
-# Run the full pipeline for 50 epochs
-python run_pipeline.py --epochs 50 --batch-size 8
+# Run the full pipeline for 10 epochs
+python run_pipeline.py --epochs 10 --batch-size 8
 
 # For a quick dry-run test (processes only 2 tracks, trains for 2 epochs)
 python run_pipeline.py --dry-run --epochs 2 --batch-size 2
@@ -129,7 +129,7 @@ python -m src.separate path/to/your/song.mp3
 *Separated stems will be saved in `web/results/<timestamp>/`.*
 
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```text
 Musician-s-Tool/
@@ -143,5 +143,5 @@ Musician-s-Tool/
 └── web/               # Flask backend and static frontend assets
 ```
 
-## 📝 License
+## License
 This project is for educational and research purposes. Please adhere to the license terms of the MUSDB18 dataset and any included third-party libraries.

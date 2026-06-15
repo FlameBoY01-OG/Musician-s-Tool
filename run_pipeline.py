@@ -18,7 +18,17 @@ def main():
     print("\n" + "="*50)
     print("🚀 STEP 1: PREPROCESSING DATA")
     print("="*50)
-    preprocess(args)
+    
+    import os
+    if os.path.exists('data/processed') and len(os.listdir('data/processed')) > 0:
+        print("✅ Preprocessed data found in 'data/processed'.")
+        print("Skipping preprocessing step.")
+    else:
+        print("⚠️ Preprocessed data not found in 'data/processed'.")
+        print("Automatic preprocessing is disabled to save time.")
+        print("If you want to run preprocessing, please run it manually:")
+        print("    python -m src.preprocess")
+        sys.exit(1)
     
     print("\n" + "="*50)
     print("🧠 STEP 2: TRAINING U-NET MODEL")

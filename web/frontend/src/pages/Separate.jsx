@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
-function Waveform({ stem, audioBuffer }) {
+function Waveform({ audioBuffer }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -42,19 +42,29 @@ function Waveform({ stem, audioBuffer }) {
   return <canvas ref={canvasRef} className="waveform" />;
 }
 
+const formatTime = (time) => {
+  if (isNaN(time)) return "0:00";
+  const m = Math.floor(time / 60);
+  const s = Math.floor(time % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+};
+
 function Separate() {
   const { jobId } = useParams();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [buffers, setBuffers] = useState({});
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [playingStems, setPlayingStems] = useState({ vocals: false, accompaniment: false });
+  const [progress, setProgress] = useState({ vocals: 0, accompaniment: 0 });
   
   // Audio state refs
   const audioCtxRef = useRef(null);
   const gainNodesRef = useRef({});
   const sourcesRef = useRef({});
-  const startTimeRef = useRef(0);
-  const pausedAtRef = useRef(0);
+  const startTimeRef = useRef({ vocals: 0, accompaniment: 0 });
+  const pausedAtRef = useRef({ vocals: 0, accompaniment: 0 });
+  const animationRef = useRef({ vocals: null, accompaniment: null });
 
   // Controls state
   const [controls, setControls] = useState({
@@ -80,6 +90,12 @@ function Separate() {
             
             // Setup gain node
             const gainNode = ctx.createGain();
+            
+            // Initialize with current controls state
+            let initialVol = controls[stem] ? controls[stem].vol : 1;
+            if (controls[stem] && controls[stem].mute) initialVol = 0;
+            gainNode.gain.value = initialVol;
+            
             gainNode.connect(ctx.destination);
             gainNodesRef.current[stem] = gainNode;
         }
@@ -98,6 +114,8 @@ function Separate() {
     return () => {
       // Cleanup
       if (audioCtxRef.current) {
+        const animRefs = animationRef.current;
+        Object.keys(animRefs).forEach(key => cancelAnimationFrame(animRefs[key]));
         audioCtxRef.current.close();
       }
     };
@@ -122,12 +140,7 @@ function Separate() {
     }
   }, [controls]);
 
-  const togglePlay = () => {
-    if (isPlaying) pause();
-    else play();
-  };
-
-  const play = () => {
+  const playStem = (stem, startTime = pausedAtRef.current[stem] || 0) => {
     const ctx = audioCtxRef.current;
     if (!ctx) return;
     
@@ -135,38 +148,69 @@ function Separate() {
         ctx.resume();
     }
     
-    for (const stem in buffers) {
-        const source = ctx.createBufferSource();
-        source.buffer = buffers[stem];
-        source.connect(gainNodesRef.current[stem]);
-        source.start(0, pausedAtRef.current);
-        sourcesRef.current[stem] = source;
-        
-        // Handle end
-        source.onended = () => {
-            // Very simple end detection
-            setIsPlaying(false);
-            pausedAtRef.current = 0;
-        };
+    if (sourcesRef.current[stem]) {
+        sourcesRef.current[stem].onended = null;
+        try { sourcesRef.current[stem].stop(); } catch (err) { console.debug('Stop ignored', err); }
+        sourcesRef.current[stem].disconnect();
     }
+    cancelAnimationFrame(animationRef.current[stem]);
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffers[stem];
+    source.connect(gainNodesRef.current[stem]);
+    source.start(0, startTime);
+    sourcesRef.current[stem] = source;
     
-    startTimeRef.current = ctx.currentTime - pausedAtRef.current;
-    setIsPlaying(true);
+    // Handle end
+    source.onended = () => {
+        setPlayingStems(prev => ({ ...prev, [stem]: false }));
+        pausedAtRef.current[stem] = 0;
+        setProgress(prev => ({ ...prev, [stem]: 0 }));
+        cancelAnimationFrame(animationRef.current[stem]);
+    };
+    
+    startTimeRef.current[stem] = ctx.currentTime - startTime;
+    pausedAtRef.current[stem] = startTime;
+    setPlayingStems(prev => ({ ...prev, [stem]: true }));
+    
+    const updateProgress = () => {
+        if (audioCtxRef.current) {
+            const currentProgress = audioCtxRef.current.currentTime - startTimeRef.current[stem];
+            if (currentProgress <= buffers[stem].duration) {
+                setProgress(prev => ({ ...prev, [stem]: currentProgress }));
+                animationRef.current[stem] = requestAnimationFrame(updateProgress);
+            }
+        }
+    };
+    animationRef.current[stem] = requestAnimationFrame(updateProgress);
   };
 
-  const pause = () => {
+  const pauseStem = (stem) => {
     const ctx = audioCtxRef.current;
     if (!ctx) return;
     
-    for (const stem in sourcesRef.current) {
-        if (sourcesRef.current[stem]) {
-            sourcesRef.current[stem].onended = null;
-            sourcesRef.current[stem].stop();
-            sourcesRef.current[stem].disconnect();
-        }
+    if (sourcesRef.current[stem]) {
+        sourcesRef.current[stem].onended = null;
+        try { sourcesRef.current[stem].stop(); } catch (err) { console.debug('Stop ignored', err); }
+        sourcesRef.current[stem].disconnect();
     }
-    pausedAtRef.current = ctx.currentTime - startTimeRef.current;
-    setIsPlaying(false);
+    cancelAnimationFrame(animationRef.current[stem]);
+    
+    pausedAtRef.current[stem] = ctx.currentTime - startTimeRef.current[stem];
+    setPlayingStems(prev => ({ ...prev, [stem]: false }));
+  };
+
+  const togglePlayStem = (stem) => {
+    if (playingStems[stem]) pauseStem(stem);
+    else playStem(stem);
+  };
+
+  const handleSeek = (stem, time) => {
+    setProgress(prev => ({ ...prev, [stem]: time }));
+    pausedAtRef.current[stem] = time;
+    if (playingStems[stem]) {
+        playStem(stem, time);
+    }
   };
 
   const updateControl = (stem, field, value) => {
@@ -193,8 +237,17 @@ function Separate() {
         <div className="player-container">
           {['vocals', 'accompaniment'].map(stem => (
             <div key={stem} className="stem-track">
-              <div className="stem-header">
-                <h3 style={{ textTransform: 'capitalize' }}>{stem}</h3>
+              <div className="stem-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <button 
+                    className="btn-primary" 
+                    onClick={() => togglePlayStem(stem)}
+                    style={{ padding: '0.5rem 1rem' }}
+                  >
+                    {playingStems[stem] ? 'Pause' : 'Play'}
+                  </button>
+                  <h3 style={{ textTransform: 'capitalize', margin: 0 }}>{stem}</h3>
+                </div>
                 <div className="stem-controls">
                   <button 
                     className={controls[stem].mute ? 'active' : ''} 
@@ -210,16 +263,33 @@ function Separate() {
                     min="0" max="1" step="0.01" 
                     value={controls[stem].vol} 
                     onChange={e => updateControl(stem, 'vol', parseFloat(e.target.value))} 
+                    title="Volume"
                   />
                 </div>
               </div>
-              <Waveform stem={stem} audioBuffer={buffers[stem]} />
+              <Waveform audioBuffer={buffers[stem]} />
+              
+              {/* Progress Slider */}
+              <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{formatTime(progress[stem])}</span>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max={buffers[stem]?.duration || 100} 
+                  step="0.01" 
+                  value={progress[stem] || 0}
+                  onChange={(e) => handleSeek(stem, parseFloat(e.target.value))}
+                  style={{ flex: 1, cursor: 'pointer' }}
+                  title="Seek"
+                />
+                <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{formatTime(buffers[stem]?.duration || 0)}</span>
+              </div>
             </div>
           ))}
-
+          
           <div className="text-center" style={{ marginTop: '2rem' }}>
-            <button className="btn-primary" onClick={togglePlay} style={{ padding: '1rem 2rem', fontSize: '1.2rem' }}>
-              {isPlaying ? 'Pause' : 'Play'}
+            <button className="btn-primary" onClick={() => navigate('/')} style={{ padding: '0.8rem 1.5rem', fontSize: '1.1rem' }}>
+              Separate Another File
             </button>
           </div>
         </div>

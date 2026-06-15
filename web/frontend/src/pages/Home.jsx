@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UploadCloud } from 'lucide-react';
 
 function Home() {
@@ -40,6 +40,9 @@ function Home() {
   const handleFileSelect = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       handleUpload(e.target.files[0]);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -111,7 +114,6 @@ function Home() {
         <div style={{ padding: '3rem', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: '1px dashed var(--glass-border)', margin: '2rem 0' }}>
           <h3 style={{ color: 'var(--accent-color)' }}>Model Initialization Required</h3>
           <p>The AI model is currently undergoing training and evaluation. Audio separation will be unlocked once this process is complete.</p>
-          <Link to="/training" className="btn-primary" style={{ display: 'inline-block', marginTop: '1rem' }}>View Live Dashboard</Link>
         </div>
       )}
 
